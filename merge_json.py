@@ -1,6 +1,7 @@
 import json
 import os
 import codecs
+import shutil
 def merge_json(up_dir, down_dir, dst_dir):
    if not os.path.exists(dst_dir):
       os.mkdir(dst_dir)
@@ -17,10 +18,11 @@ def merge_json(up_dir, down_dir, dst_dir):
         down_data = json.load(f)
         # 解析为字典
     up_dict = dict(up_data)
-    down_dict = dict(down_data)        
+    down_dict = dict(down_data)
     up_dict["shapes"] = up_dict["shapes"] + down_dict["shapes"]
     with codecs.open(os.path.join(dst_dir, item), "w") as f:
         json.dump(up_dict, f)
+    shutil.copy(up_path.replace("json", "bmp"), os.path.join(dst_dir, item).replace("json", "bmp"))
 
 if __name__ == "__main__":
    merge_json("型号_1516/2200/kong", "型号_1516/2200/kong/down", "型号_1516/2200/kong/merge")
