@@ -111,16 +111,20 @@ def replace_id(ori_path, old_id, new_id):
     
     arr = os.listdir(ori_path)
     for item in arr:
-        if item == "112830720.bmp" or item.endswith(".py") or item.endswith(".bmp"):
+        if item == "112830720.bmp" or item.endswith(".py") or item.endswith(".bmp") or os.path.isdir(os.path.join(ori_path, item)):
             continue
         print(item)
         with open(os.path.join(ori_path, item), 'r', encoding= "utf-8") as f:
             data = json.load(f)
         old_item = item
         item = item.replace(old_id, new_id)
+        
         data["imagePath"] = item.replace("json", "bmp")
         # 读取图像文件
         image_path = os.path.join(ori_path, data["imagePath"])
+        if not os.path.exists(image_path):
+            print(image_path + "is not exits")
+            continue
         image = cv2.imread(image_path)
 
         # 将图像转换为Base64编码
@@ -162,11 +166,11 @@ def rename(ori_path, word):
                 os.rename(old_path, new_path)
 
 if __name__ == "__main__":
-    # replace_id("源数据/20230724/20230724彩色曝光3400", "1003213400", "1008063400")
-    run("源数据/20230724/20230724彩色曝光3400", "1008063400")
+    # replace_id("型号_1516/2800/7.25", "2200", "2800")
+    # run("型号_1516/2600/7.25", "1008062800")
     # replace_label("型号_7428", "M3-P", "M4-P")
     # 重命名
-    # rename("源数据/20230724", "ÆØ¹â")
+    rename("型号_1516/2600/7.25", "ÆØ¹â")
 
     # for i in os.listdir("20230714曝光800"):
     #     if i.endswith('112830800.json') or i.endswith("112830800 copy.json") or i.endswith(".bmp"):

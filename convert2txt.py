@@ -28,4 +28,4 @@ def convert(file_path):
             f.write("\n" + str(i) + " " + str(x) + " " + str(y) + " " + convertLabel(item["label"]))
 
 if __name__ == "__main__":
-    convert("型号_1495/new/1117002000.json")
+    convert("型号_1459/2200/1302562200.json")
