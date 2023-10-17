@@ -16,4 +16,4 @@ def move_file(search_path, ori_path, dst_path, old_name, replace_name):
 
 
 if __name__ == "__main__":
-    move_file("型号_1516/2000/kong", "型号_1516/2800", "型号_1516/2800/kong", str(2000), str(2800))
+    move_file("型号_1516/1600/kong", "型号_1516/2800", "型号_1516/2800/kong", str(2000), str(2800))

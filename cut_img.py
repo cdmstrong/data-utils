@@ -16,43 +16,53 @@ item_type = {
     "M4-P": 64,
     "M4-C": 64,
     "M4-K": 64,
-
 }
-def parse(ori_path, dst_path):
+def parse(ori_path, dst_path, filter_dir):
     # ori_json = json.load("112830曝光640.json")
     # 读取JSON文件
     print('----------------')
     print(ori_path) 
     if not os.path.exists(dst_path):
         os.mkdir(dst_path)
+    find = 0
+    for root, dirs, files in os.walk(ori_path):
+        if root.split("/")[-1] in filter_dir:
+            continue
+        for i in filter_dir:
+            if root.find(i) >= 0:
+                find = 1
+                break
+        if find:
+            continue
+        print(root)
+        for file in files:
+            if file.endswith(".json"):
+                with open(os.path.join(root, file), "r", encoding= "utf-8") as f:
+                    ori_data = json.load(f)
+                ori_dict = dict(ori_data)
+                im = cv2.imread(os.path.join(root, file.replace("json", "bmp")))
 
-    for file in os.listdir(ori_path):
-        print(f"{file}\n")
-        if file.endswith(".json"):
-            with open(os.path.join(ori_path, file), "r", encoding= "utf-8") as f:
-                ori_data = json.load(f)
-            ori_dict = dict(ori_data)
-            im = cv2.imread(os.path.join(ori_path, file.replace("json", "bmp")))
-
-            # 解析为字典
-            for item in ori_dict["shapes"]:
-                point = item["points"]
-                label = item["label"]
-                x, y = (point[1][0] + point[0][0])/2, (point[1][1] + point[0][1])/2
-                filename = file.split('.')[0]
-                rand_string = ''.join(random.choices(string.ascii_lowercase, k=5))
-                item_size = item_type[label] + 4
-                if label == "M4-P":
-                    label = "M3-P"
-                elif label == "M4-C":
-                    label = "M3-C"
-                if not os.path.exists(dst_path + "/" + label):
-                    os.mkdir(dst_path + "/" + label)
-                save_path = dst_path + "/" + label + "/" + filename + rand_string + ".jpg"
-                cropped_image = im[int(y - item_size/2):int(y + item_size/2),int(x - item_size/2):int(x + item_size/2)]
-            # 将裁剪后的NumPy数组转换为图像并保存到输出文件
-                cv2.imwrite(save_path, cropped_image)
-            # pts2 = np.float32([[1532, 849], [3974, 840], [1593, 2468], [3999, 2616]]) #
+                # 解析为字典
+                for item in ori_dict["shapes"]:
+                    point = item["points"]
+                    label = item["label"]
+                    x, y = (point[1][0] + point[0][0])/2, (point[1][1] + point[0][1])/2
+                    filename = file.split('.')[0]
+                    rand_string = ''.join(random.choices(string.ascii_lowercase, k=9))
+                    item_size = item_type[label] + 4
+                    if label == "M4-P":
+                        label = "M3-P"
+                    elif label == "M4-C":
+                        label = "M3-C"
+                    elif label == "M4-K":
+                        label = "M3-K"
+                    if not os.path.exists(dst_path + "/" + label):
+                        os.mkdir(dst_path + "/" + label)
+                    save_path = dst_path + "/" + label + "/" + filename + rand_string + ".jpg"
+                    cropped_image = im[int(y - item_size/2):int(y + item_size/2),int(x - item_size/2):int(x + item_size/2)]
+                # 将裁剪后的NumPy数组转换为图像并保存到输出文件
+                    cv2.imwrite(save_path, cropped_image)
+                # pts2 = np.float32([[1532, 849], [3974, 840], [1593, 2468], [3999, 2616]]) #
     
     
 def run(ori_path, first_filename):
@@ -94,7 +104,7 @@ def replace_id(ori_path, old_id, new_id):
             json.dump(data, f)
 
 if __name__ == "__main__":
-    parse("型号_7428/彩色", "classify")
+    parse("源数据/20230912", "classify2", [])
     # 型号_1459
     # 型号_1495 and new
     # 型号_1516 反面

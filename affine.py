@@ -39,11 +39,14 @@ def get_points(data):
         pts2.append(item)
     pts2 = pts2 + temp
     return pts2
-def parse(ori_name, dst_name):
+def parse(ori_name, dst_name, filter_arr = []):
     # ori_json = json.load("112830曝光640.json")
     # 读取JSON文件
     print('----------------')
     print(dst_name) 
+    if dst_name.split('/')[-1] in filter_arr:
+        return
+    
     with open(ori_name, "r", encoding= "utf-8") as f:
         ori_data = json.load(f)
     with open(dst_name, 'r', encoding= "utf-8") as f:
@@ -65,7 +68,7 @@ def parse(ori_name, dst_name):
     if len(dst_dict["shapes"]) > 4:
         return
     pts1 = get_points(ori_dict["shapes"][:4])
-    pts2 = get_points(dst_dict["shapes"])
+    pts2 = get_points(dst_dict["shapes"][:4])
     print(pts2)
 
     # pts2 = np.float32([[1532, 849], [3974, 840], [1593, 2468], [3999, 2616]]) #
@@ -92,14 +95,74 @@ def parse(ori_name, dst_name):
     with codecs.open(dst_name, "w") as f:
         json.dump(ori_dict, f)
     
-def run(ori_path, first_filename):
-    arr = os.listdir(ori_path)
-    index = 0
-    for item in arr:
-        if item.endswith(".json") and first_filename + ".json" != item:
-            parse(os.path.join(ori_path, first_filename + ".json"), os.path.join(ori_path, item))
-            # index += 1
+def parse(ori_name, dst_name, type_name, filter_arr = []):
+    # ori_json = json.load("112830曝光640.json")
+    # 读取JSON文件
+    print('----------------')
+    print(dst_name) 
+    if dst_name.split('/')[-1] in filter_arr:
+        return
+    with open(ori_name, "r", encoding= "utf-8") as f:
+        ori_data = json.load(f)
+    with open(dst_name, 'r', encoding= "utf-8") as f:
+        data = json.load(f)
+    with open(type_name, 'r', encoding= "utf-8") as f:
+        type_data = json.load(f)
+    # 解析为字典
+    ori_dict = dict(ori_data)
+    dst_dict = dict(data)
+    type_dict = dict(type_data)
 
+    # 变换前的4个点
+    # pts1 = np.float32([[1420, 930],[3844, 962], [1462, 2548],[3843, 2720]])#7428
+    # pts1 = np.float32([[1169, 778],[3746, 1159], [1025, 2391],[3525, 2791]])#1495
+    # pts1 = np.float32([[1490, 1403],[3837, 1028], [1622, 2779],[3947, 2566]])# 1516 new
+    # pts1 = np.float32([[1552, 1301],[3916, 1026], [1543, 2647],[3877, 2555]])# 1516 temp
+    # pts1 = np.float32([[1100, 1349],[4062, 723], [1147, 2643],[4113, 2168]])# 1516
+    # pts1 = np.float32([[786, 1186],[3826, 508], [955, 2993],[3969, 2626]])# 1529
+
+    # 变换后的4个点
+    pts2 = []
+    # if len(dst_dict["shapes"]) > 4:
+    #     return
+    pts1 = get_points(ori_dict["shapes"][:4])
+    pts2 = get_points(dst_dict["shapes"][:4])
+
+    # pts2 = np.float32([[1532, 849], [3974, 840], [1593, 2468], [3999, 2616]]) #
+    matrix = cv2.getPerspectiveTransform(np.float32(pts1), np.float32(pts2))
+    for i, point in enumerate(type_dict["shapes"]):
+        point = point["points"]
+        item = np.float32([
+            [
+                point[0][0],
+                point[0][1]
+            ],
+            [
+                point[1][0],
+                point[1][1]
+            ]
+        ])
+        type_dict["shapes"][i]["points"] = perspective_transform(item, matrix).tolist()
+    # print(ori_dict["shapes"][0]["points"])
+    image = cv2.imread(dst_name.replace("json", "bmp"))
+    # _, buffer = cv2.imencode('.jpg', image)
+    type_dict['imageData'] = None
+    type_dict['imagePath'] = dst_name.split("/")[-1].replace("json", "bmp")
+
+    with codecs.open(dst_name, "w") as f:
+        json.dump(type_dict, f)
+    
+def run(ori_path, first_filename, type_file, filter_arr = []):
+    arr = os.listdir(ori_path)
+    for root, dirs, files in os.walk(ori_path):
+        print(root)
+        for item in files:
+    # for item in arr:
+            if item.endswith(".json") and first_filename + ".json" != item:
+                parse(first_filename, os.path.join(root, item), type_file, filter_arr)
+                # parse(os.path.join(ori_path, first_filename + ".json"), os.path.join(ori_path, item), type_file, filter_arr)
+            else:
+                print("file is invalid")
 # 替换文件夹内，型号不同的信息
 '''
 ori_path: 文件夹路径
@@ -111,7 +174,7 @@ def replace_id(ori_path, old_id, new_id):
     
     arr = os.listdir(ori_path)
     for item in arr:
-        if item == "112830720.bmp" or item.endswith(".py") or item.endswith(".bmp") or os.path.isdir(os.path.join(ori_path, item)):
+        if item == "112830720.bmp" or item.endswith('.txt') or item.endswith(".py") or item.endswith(".bmp") or os.path.isdir(os.path.join(ori_path, item)):
             continue
         print(item)
         with open(os.path.join(ori_path, item), 'r', encoding= "utf-8") as f:
@@ -128,8 +191,8 @@ def replace_id(ori_path, old_id, new_id):
         image = cv2.imread(image_path)
 
         # 将图像转换为Base64编码
-        retval, buffer = cv2.imencode('.jpg', image)
-        data["imageData"] = base64.b64encode(buffer).decode('utf-8')
+        # retval, buffer = cv2.imencode('.jpg', image)
+        data["imageData"] = None
         os.remove(os.path.join(ori_path, old_item))
         with codecs.open(os.path.join(ori_path, item), "w") as f:
             json.dump(data, f)
@@ -164,15 +227,27 @@ def rename(ori_path, word):
                 new_path = os.path.join(root, new_file)
                 # 重命名文件
                 os.rename(old_path, new_path)
+def find_idx(file_path):
+    with open(file_path, 'r', encoding= "utf-8") as f:
+            data = json.load(f)
+    shapes = data["shapes"]
+    for i, shape in enumerate(shapes):
+        if shape["description"] == "3":
+            print(i)
+        if shape['description'] == "4":
+            print(i)
 
 if __name__ == "__main__":
-    # replace_id("型号_1516/2800/7.25", "2200", "2800")
-    # run("型号_1516/2600/7.25", "1008062800")
+    # replace_id("源数据/20230912/Image20230911/WT-H1475114/exp_900", "0", "0")
+    run("源数据/20231007/new/1/正面", "源数据/20230927/WT-H1582Y-3/正面/20230926081423238.json", "源数据/20230927/WT-H1582Y-3/正面/20230926081423238.json")
     # replace_label("型号_7428", "M3-P", "M4-P")
     # 重命名
-    rename("型号_1516/2600/7.25", "ÆØ¹â")
-
+    # rename("源数据/20230717", "ÆØ¹â")
+    # find_idx("源数据/20230912/WT-H1582Y-正面/20230908102918141.json")
     # for i in os.listdir("20230714曝光800"):
     #     if i.endswith('112830800.json') or i.endswith("112830800 copy.json") or i.endswith(".bmp"):
     #         continue
-    #     os.remove(os.path.join("20230714曝光800", i))
+    #     os.remove(os.path.join("20230714曝光800", i)) 
+    # 1582 -20 -104
+    # parse("源数据/20230912/backup/7451/20230909090720417.json", "源数据/20230912/backup/7451/20230909135613774.json", "源数据/20230912/backup/7451/20230909090720417.json", [])
+    # 20230909135613774

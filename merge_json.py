@@ -25,4 +25,4 @@ def merge_json(up_dir, down_dir, dst_dir):
     shutil.copy(up_path.replace("json", "bmp"), os.path.join(dst_dir, item).replace("json", "bmp"))
 
 if __name__ == "__main__":
-   merge_json("型号_1516/2200/kong", "型号_1516/2200/kong/down", "型号_1516/2200/kong/merge")
+   merge_json("型号/型号_1529/2000/up", "型号/型号_1529/2000/down", "型号/型号_1529/2000/merge")
