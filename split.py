@@ -5,9 +5,9 @@ import shutil
 
 def split_file(parent_folder):
     # 定义各个文件夹的路径
-    # dirs = [os.path.join(parent_folder, item) for item in os.listdir(parent_folder)]
-    dirs = ["M3-L", "M4-L", "M5-L", "M8-L"]
-    MAX_SIZE = 44000
+    dirs = os.listdir(parent_folder)
+    dirs = [os.path.join(parent_folder, item) for item in dirs]
+    MAX_SIZE = 30000
     # 计算每个文件夹中要划分为验证集的图片数量
     val_ratio = 0.1
     file_sizes = [ int(val_ratio * (len(os.listdir(item)) if len(os.listdir(item)) < 10000 else MAX_SIZE)) for item in dirs]
@@ -27,22 +27,33 @@ def split_file(parent_folder):
         train_filenames = set(filenames[file_sizes[index]:MAX_SIZE])
 
         # 移动文件到 train/ 或 val/ 目录中的子文件夹中
-        # os.makedirs(os.path.join(val_folder, os.path.basename(folder)), exist_ok = True)
-        os.makedirs(os.path.join(val_folder, "M3-L"), exist_ok = True)
-        # os.makedirs(os.path.join(train_folder, os.path.basename(folder)), exist_ok = True)
-        os.makedirs(os.path.join(train_folder, "M3-L"), exist_ok = True)
+        os.makedirs(os.path.join(val_folder, os.path.basename(folder)), exist_ok = True)
+        # os.makedirs(os.path.join(val_folder, os.path.basename("labels")), exist_ok = True)
+        # os.makedirs(os.path.join(val_folder, "M3-L"), exist_ok = True)
+        os.makedirs(os.path.join(train_folder, os.path.basename(folder)), exist_ok = True)
+        # os.makedirs(os.path.join(train_folder, os.path.basename("labels")), exist_ok = True)
+        # os.makedirs(os.path.join(train_folder, "M3-L"), exist_ok = True)
 
         for filename in val_filenames:
             src_path = os.path.join(folder, filename)
-            dst_path = os.path.join(val_folder, "M3-L", filename)
-            # dst_path = os.path.join(val_folder, os.path.basename(folder), filename)
+            # txt_path = os.path.join(parent_folder,"labels", filename.replace("bmp", "txt"))
+            # dst_path = os.path.join(val_folder, "M3-L", filename)
+            dst_path = os.path.join(val_folder, os.path.basename(folder), filename)
+            # dst_txt = os.path.join(val_folder, "labels", filename.replace("bmp", "txt"))
+            print(dst_path)
+
             shutil.copy(src_path, dst_path)
+            # shutil.copy(txt_path, dst_txt)
 
         for filename in train_filenames:
             src_path = os.path.join(folder, filename)
-            dst_path = os.path.join(train_folder, "M3-L", filename)
-            # dst_path = os.path.join(train_folder, os.path.basename(folder), filename)
+            # txt_path = os.path.join(parent_folder, "labels", filename.replace("bmp", "txt"))
+            # dst_path = os.path.join(train_folder, "M3-L", filename)
+            dst_path = os.path.join(train_folder, os.path.basename(folder), filename)
+            # dst_txt = os.path.join(train_folder, "labels", filename.replace("bmp", "txt"))
+            print(dst_path)
             shutil.copy(src_path, dst_path)
+            # shutil.copy(txt_path, dst_txt)
     
 def random_del(folder):
     filenames = os.listdir(folder)
@@ -55,6 +66,6 @@ def random_del(folder):
         print(os.path.join(folder, item))
         os.remove(os.path.join(folder, item))
 if __name__ == "__main__":
-    parent_folder = "/home/cdm/data/华为滤波器/cls-L/clspatch-L/train/M3-L"
-    # split_file(parent_folder)
-    random_del(parent_folder)
+    parent_folder = "/home/cdm/code/ncnn-plate/cut_dir/clspatch1"
+    split_file(parent_folder)
+    # random_del(parent_folder)

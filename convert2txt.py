@@ -52,10 +52,10 @@ def parse(ori_path, filter_dir):
         for file in files:
             if file.endswith("json"):
                 print(f"转换file{file}")
-                # convert(os.path.join(root, file))
+                convert(os.path.join(root, file))
                 # move_dir(os.path.join(root, file), "源数据/20230927/WT-H1582Y-3/正面/")
                 # remove_imgData(os.path.join(root, file))
-                json2txt(os.path.join(root, file))
+                # json2txt(os.path.join(root, file))
             # if file.endswith("bmp"):
                 # move_slider(os.path.join(root, file),file)
 
@@ -88,7 +88,7 @@ def json2txt(file_path):
             x = ((item["points"][1][0] + item["points"][0][0])/2)/img_w
             y = ((item["points"][1][1] + item["points"][0][1])/2)/img_h
             w = (item["points"][1][0] - item["points"][0][0])/img_w
-            h = ((item["points"][1][1] + item["points"][0][1])/2)/img_h
+            h = (item["points"][1][1] - item["points"][0][1])/img_h
             f.write(str(0) + " " + str(x) + " " + str(y) + " " + str(w) + " " + str(h) + "\n")
 def move_dir(file_path, move_dir):
     res_path = file_path.replace("json", "txt")
@@ -115,7 +115,7 @@ def remove_imgData(file_path):
 
 if __name__ == "__main__":
     # convert("源数据/20230912/WT-H7451Y-正面/20230909135613774.json")
-    parse("train_slider", [])
+    parse("/home/cdm/桌面/tese", [])
     # print(convertLabel("M3-K"))
 
     
